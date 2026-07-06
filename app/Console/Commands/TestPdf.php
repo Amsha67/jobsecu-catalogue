@@ -28,6 +28,14 @@ class TestPdf extends Command
 
         // 2. Appel API Claude
         $this->info('Envoi à Claude...');
+        $claude = new \App\Services\ClaudeService();
+        $data = $claude->analyserFiche($texte);
+
+        if (!$data) {
+            $this->error('❌ Impossible de parser la réponse Claude');
+            return;
+        }
+        $this->info('✅ JSON valide');
 
         $prompt = <<<PROMPT
 Tu es un expert EPI (Équipements de Protection Individuelle).

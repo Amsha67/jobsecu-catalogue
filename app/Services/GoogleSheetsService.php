@@ -120,75 +120,130 @@ class GoogleSheetsService
         return null; // Non trouvé
     }
 
-    public function mettreAJourLigne(string $onglet, int $numeroLigne, array $valeurs, array $alertes = []): bool
+    public function mettreAJourLigne(string $onglet, int $numeroLigne, array $valeurs): bool
     {
-        // Écriture des données depuis colonne C
-        $valeursDepuisC = array_slice($valeurs, 2);
-        $range = urlencode($onglet . '!C' . $numeroLigne . ':AJ' . $numeroLigne);
-        $url = "{$this->baseUrl}/{$this->spreadsheetId}/values/{$range}";
-
-        $response = Http::withoutVerifying()
-            ->withToken($this->accessToken)
-            ->withQueryParameters(['valueInputOption' => 'USER_ENTERED'])
-            ->put($url, ['values' => [$valeursDepuisC]]);
-
-        if (!$response->successful())
-            return false;
-
-        // Colorier les cellules selon leur statut
+        $sheetId = $this->getSheetId($onglet);
         $requests = [];
 
-        // Colonnes à vérifier (index 0 = col A)
-        $colonnesImportantes = [
-            10 => 'Fournisseurs',      // K
-            11 => 'Genre Femme',       // L
-            14 => 'Type',              // O
-            15 => 'Fermeture',         // P
-            16 => 'Coquille',          // Q
-            17 => 'Semelle',           // R
-            18 => 'Coloris',           // S
-            19 => 'Norme',             // T
+        // Mapping colonne index → lettre
+        $colonnes = [
+            10 => 'K',  // Fournisseurs
+            11 => 'L',  // Genre Femme
+            12 => 'M',  // Genre Homme
+            13 => 'N',  // Genre Mixte
+            14 => 'O',  // Type
+            15 => 'P',  // Fermeture
+            16 => 'Q',  // Coquille
+            17 => 'R',  // Semelle
+            18 => 'S',  // Coloris
+            19 => 'T',  // Norme
+            20 => 'U',  // Option 1
+            21 => 'V',  // Option 2
+            22 => 'W',  // Option 3
+            23 => 'X',  // Option 4
+            24 => 'Y',  // Option 5
+            25 => 'Z',  // Option 6
+            26 => 'AA', // Option 7
+            27 => 'AB', // Loi AGEC
+            34 => 'AI', // Nom WooCommerce
+            35 => 'AJ', // Description
         ];
 
-        foreach ($colonnesImportantes as $colIndex => $nom) {
-            $valeur = $valeurs[$colIndex] ?? '';
+        foreach ($colonnes as $index => $lettre) {
+            $valeur = $valeurs[$index] ?? '';
 
-            if (empty($valeur)) {
-                // Jaune = donnée manquante
-                $couleur = ['red' => 1.0, 'green' => 0.9, 'blue' => 0.0];
-            } else {
-                // Vert clair = donnée présente
-                $couleur = ['red' => 0.85, 'green' => 0.95, 'blue' => 0.85];
-            }
+            // Ne pas écraser si Claude n'a rien trouvé
+            if ($valeur === '' || $valeur === null)
+                continue;
 
+            // Couleur selon présence
+            $couleur = ['red' => 0.85, 'green' => 0.95, 'blue' => 0.85]; // vert
+
+            $colNum = $this->lettreVersIndex($lettre);
+
+            // Écriture de la valeur
             $requests[] = [
-                'repeatCell' => [
+                'updateCells' => [
                     'range' => [
-                        'sheetId' => $this->getSheetId($onglet),
+                        'sheetId' => $sheetId,
                         'startRowIndex' => $numeroLigne - 1,
                         'endRowIndex' => $numeroLigne,
-                        'startColumnIndex' => $colIndex,
-                        'endColumnIndex' => $colIndex + 1,
+                        'startColumnIndex' => $colNum,
+                        'endColumnIndex' => $colNum + 1,
                     ],
-                    'cell' => [
-                        'userEnteredFormat' => [
-                            'backgroundColor' => $couleur,
-                        ],
+                    'rows' => [
+                        [
+                            'values' => [
+                                [
+                                    'userEnteredValue' => ['stringValue' => (string) $valeur],
+                                    'userEnteredFormat' => [
+                                        'backgroundColor' => $couleur,
+                                    ],
+                                ]
+                            ],
+                        ]
+                    ],
+                    'fields' => 'userEnteredValue,userEnteredFormat.backgroundColor',
+                ],
+            ];
+        }
+
+        // Colonnes importantes vides → jaune
+        $colonnesObligatoires = [16, 17, 18, 19]; // Coquille, Semelle, Coloris, Norme
+        foreach ($colonnesObligatoires as $index) {
+            $valeur = $valeurs[$index] ?? '';
+            if ($valeur !== '' && $valeur !== null)
+                continue;
+
+            $lettre = $colonnes[$index] ?? null;
+            if (!$lettre)
+                continue;
+
+            $colNum = $this->lettreVersIndex($lettre);
+            $requests[] = [
+                'updateCells' => [
+                    'range' => [
+                        'sheetId' => $sheetId,
+                        'startRowIndex' => $numeroLigne - 1,
+                        'endRowIndex' => $numeroLigne,
+                        'startColumnIndex' => $colNum,
+                        'endColumnIndex' => $colNum + 1,
+                    ],
+                    'rows' => [
+                        [
+                            'values' => [
+                                [
+                                    'userEnteredFormat' => [
+                                        'backgroundColor' => ['red' => 1.0, 'green' => 0.9, 'blue' => 0.0],
+                                    ],
+                                ]
+                            ],
+                        ]
                     ],
                     'fields' => 'userEnteredFormat.backgroundColor',
                 ],
             ];
         }
 
-        // Envoyer les couleurs
-        if (!empty($requests)) {
-            $urlBatch = "{$this->baseUrl}/{$this->spreadsheetId}:batchUpdate";
-            Http::withoutVerifying()
-                ->withToken($this->accessToken)
-                ->post($urlBatch, ['requests' => $requests]);
-        }
+        if (empty($requests))
+            return true;
 
-        return true;
+        $urlBatch = "{$this->baseUrl}/{$this->spreadsheetId}:batchUpdate";
+        $response = Http::withoutVerifying()
+            ->withToken($this->accessToken)
+            ->post($urlBatch, ['requests' => $requests]);
+
+        return $response->successful();
+    }
+
+    private function lettreVersIndex(string $lettre): int
+    {
+        $lettre = strtoupper($lettre);
+        $result = 0;
+        for ($i = 0; $i < strlen($lettre); $i++) {
+            $result = $result * 26 + (ord($lettre[$i]) - ord('A') + 1);
+        }
+        return $result - 1; // 0-based
     }
 
     private function getSheetId(string $onglet): int

@@ -59,13 +59,16 @@ class RulesEngine
         return [
             'sku' => $this->nettoyerSku($data['sku']),
             'nom_modele' => $data['nom_modele'],
+            'nom_court' => $data['nom_court'] ?? null,
+            'nom_woocommerce' => $data['nom_woocommerce'] ?? null,
+            'description' => $data['description'] ?? null,
             'fournisseur' => $this->normaliserFournisseur($data['fournisseur']),
             'pointures' => $this->formaterPointures($data['pointures_min'], $data['pointures_max']),
             'poids' => $data['poids'] ? $data['poids'] . 'g' : null,
             'genre_femme' => $this->genreFemme($data['pointures_min']),
             'genre_homme' => $this->genreHomme($data['pointures_max']),
             'genre_mixte' => $this->genreMixte($data['pointures_min'], $data['pointures_max']),
-            'type' => $data['type'],
+            'type' => $this->deduireType($data['type'], $data['nom_modele']),
             'fermeture' => $data['fermeture'],
             'coquille' => $data['coquille'],
             'semelle_anti_perf' => $data['semelle_anti_perf'],
@@ -160,5 +163,29 @@ class RulesEngine
         }
 
         return $alertes;
+    }
+
+    private function deduireType(?string $type, ?string $nomModele): ?string
+    {
+        if ($type)
+            return $type;
+        if (!$nomModele)
+            return null;
+
+        $nom = strtoupper($nomModele);
+
+        $motsHaute = ['HIGH', 'HAUTE', 'RANGER', 'MONTANT', 'HI ', 'BOOT'];
+        $motsBasse = ['LOW', 'BASSE', 'BASKET', 'BREEZE', 'SPRINT'];
+
+        foreach ($motsHaute as $mot) {
+            if (str_contains($nom, $mot))
+                return 'Haute';
+        }
+        foreach ($motsBasse as $mot) {
+            if (str_contains($nom, $mot))
+                return 'Basse';
+        }
+
+        return $type; // Retourne ce que Claude a dit
     }
 }

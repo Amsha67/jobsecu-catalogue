@@ -14,6 +14,10 @@ return [
     |
     */
 
+    'google' => [
+        'spreadsheet_id' => env('GOOGLE_SPREADSHEET_ID'),
+    ],
+
     'anthropic' => [
         'key' => env('ANTHROPIC_API_KEY'),
     ],

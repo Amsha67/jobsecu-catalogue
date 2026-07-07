@@ -82,6 +82,41 @@ class PdfController extends Controller
         }
     }
 
+    public function verifierCredits()
+    {
+        try {
+            $response = Http::withoutVerifying()
+                ->withHeaders([
+                    'x-api-key' => config('services.anthropic.key'),
+                    'anthropic-version' => '2023-06-01',
+                    'Content-Type' => 'application/json',
+                ])
+                ->post('https://api.anthropic.com/v1/messages', [
+                    'model' => 'claude-haiku-4-5',
+                    'max_tokens' => 10,
+                    'messages' => [['role' => 'user', 'content' => 'ok']],
+                ]);
+
+            if ($response->successful()) {
+                return response()->json([
+                    'ok' => true,
+                    'modele' => 'claude-haiku-4-5',
+                ]);
+            }
+
+            return response()->json([
+                'ok' => false,
+                'message' => 'Clé invalide ou crédits épuisés',
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'ok' => false,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+
 
 
 }

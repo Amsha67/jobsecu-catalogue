@@ -7,7 +7,24 @@
                 Sheets</p>
         </header>
 
+        <!-- Infos crédits Claude -->
+        <div v-if="creditsInfo" class="max-w-4xl mx-auto px-6 pt-4">
+            <div class="rounded-xl px-4 py-3 text-sm flex items-center justify-between"
+                :class="creditsInfo.ok ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
+                <span :class="creditsInfo.ok ? 'text-green-700' : 'text-red-700'">
+                    {{ creditsInfo.ok ? '✅ API Claude connectée — ' + creditsInfo.modele : '❌ Problème API Claude — ' +
+                        creditsInfo.message }}
+                </span>
+                <a href="https://console.anthropic.com" target="_blank" class="underline text-xs ml-4"
+                    :class="creditsInfo.ok ? 'text-green-600' : 'text-blue-600'">
+                    {{ creditsInfo.ok ? 'Gérer les crédits →' : 'Recharger les crédits →' }}
+                </a>
+            </div>
+        </div>
+
         <main class="max-w-4xl mx-auto px-6 py-8">
+
+
 
             <!-- Sélection onglet -->
             <div class="mb-6">
@@ -65,7 +82,8 @@
                 <div class="w-full bg-gray-200 rounded-full h-4 mb-4 overflow-hidden">
                     <div class="h-4 rounded-full transition-all duration-500"
                         :class="progression === total ? 'bg-green-500' : 'bg-blue-600'"
-                        :style="{ width: pourcentage + '%' }"></div>
+                        :style="{ width: pourcentage + '%' }">
+                    </div>
                 </div>
 
                 <p class="text-sm text-gray-500 text-center">
@@ -120,6 +138,23 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Guide CSV -->
+            <div class="mt-8 bg-blue-50 border border-blue-200 rounded-2xl p-6">
+                <h2 class="font-semibold text-blue-800 mb-3">📋 Comment utiliser le CSV exporté ?</h2>
+                <ol class="text-sm text-blue-700 space-y-2 list-decimal list-inside">
+                    <li>Cliquez sur <strong>"Exporter CSV WooCommerce"</strong> ci-dessous</li>
+                    <li>Dans WordPress, allez dans <strong>WooCommerce → Produits → Importer</strong></li>
+                    <li>Chargez le fichier CSV téléchargé</li>
+                    <li>Vérifiez le mapping des colonnes et cliquez <strong>"Lancer l'import"</strong></li>
+                    <li>Ajoutez les images depuis <strong>Médias → Ajouter</strong></li>
+                </ol>
+                <p class="text-xs text-blue-500 mt-3">
+                    ⚠️ Assurez-vous que les attributs (Pointure, Genre, Coquille...)
+                    sont créés dans WooCommerce avant d'importer.
+                </p>
+            </div>
+
             <!-- Bouton Export CSV -->
             <div class="mt-6 bg-white border border-blue-200 rounded-2xl p-6">
                 <h2 class="font-semibold text-gray-700 mb-2">Export WooCommerce</h2>
@@ -137,6 +172,27 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+
+const creditsInfo = ref(null)
+
+async function verifierCredits() {
+    try {
+        const res = await fetch('/api/credits-claude', {
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            }
+        })
+        creditsInfo.value = await res.json()
+    } catch (err) {
+        console.error(err)
+    }
+}
+
+// Vérifier au chargement
+onMounted(() => {
+    verifierCredits()
+})
 
 const onglet = ref('Produits Pieds')
 const files = ref([])

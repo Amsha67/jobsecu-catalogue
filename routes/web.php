@@ -7,6 +7,6 @@ Route::get('/', function () {
     return view('app');
 });
 
-
+Route::get('/api/credits-claude', [App\Http\Controllers\PdfController::class, 'verifierCredits']);
 Route::post('/api/traiter-pdf', [PdfController::class, 'traiter']);
 Route::post('/api/exporter-csv', [ExportController::class, 'exporter']);

@@ -103,7 +103,7 @@
                             <div>
                                 <span class="font-semibold">{{ r.nom }}</span>
                                 <span v-if="r.nom_woocommerce" class="text-sm text-gray-500 ml-2">→ {{ r.nom_woocommerce
-                                    }}</span>
+                                }}</span>
                             </div>
                             <span class="text-xs font-semibold px-3 py-1 rounded-full"
                                 :class="r.erreur ? 'bg-red-100 text-red-700' : r.statut === 'mis_a_jour' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'">
@@ -119,6 +119,16 @@
                         <p v-if="r.erreur" class="text-sm text-red-600 mt-1">{{ r.erreur }}</p>
                     </div>
                 </div>
+            </div>
+            <!-- Bouton Export CSV -->
+            <div class="mt-6 bg-white border border-blue-200 rounded-2xl p-6">
+                <h2 class="font-semibold text-gray-700 mb-2">Export WooCommerce</h2>
+                <p class="text-sm text-gray-500 mb-4">Génère le CSV complet de l'onglet sélectionné prêt à importer dans
+                    WordPress.</p>
+                <button @click="exporterCsv" :disabled="exportEnCours"
+                    class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-3 rounded-xl transition">
+                    {{ exportEnCours ? '⏳ Génération...' : '⬇️ Exporter CSV WooCommerce — ' + onglet }}
+                </button>
             </div>
 
         </main>
@@ -202,5 +212,35 @@ async function traiterTout() {
 
     files.value = []
     traitement.value = false
+}
+const exportEnCours = ref(false)
+
+async function exporterCsv() {
+    exportEnCours.value = true
+    try {
+        const res = await fetch('/api/exporter-csv', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify({ onglet: onglet.value }),
+        })
+
+        if (!res.ok) throw new Error('Erreur export')
+
+        // Téléchargement automatique
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'jobsecu-' + onglet.value.toLowerCase().replace(/ /g, '-') + '.csv'
+        a.click()
+        URL.revokeObjectURL(url)
+
+    } catch (err) {
+        alert('Erreur : ' + err.message)
+    }
+    exportEnCours.value = false
 }
 </script>

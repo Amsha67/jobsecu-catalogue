@@ -308,4 +308,48 @@ class GoogleSheetsService
         $valeurs = $response->json()['values'] ?? [];
         return empty($valeurs);
     }
+
+    public function lireToutesLesLignes(string $onglet): array
+    {
+        $range = urlencode($onglet . '!A:AK');
+        $url = "{$this->baseUrl}/{$this->spreadsheetId}/values/{$range}";
+
+        $response = Http::withoutVerifying()
+            ->withToken($this->accessToken)
+            ->get($url);
+
+        $rows = $response->json()['values'] ?? [];
+        $headers = array_shift($rows); // Retire la ligne d'en-tête
+        $produits = [];
+
+        foreach ($rows as $row) {
+            // Ignorer les lignes vides ou titres de section
+            if (empty($row[0]))
+                continue;
+
+            $produits[] = [
+                'sku' => $row[0] ?? '',
+                'nom_woocommerce' => $row[34] ?? '',
+                'description' => $row[35] ?? '',
+                'categorie' => $row[5] ?? '',
+                'sous_cat_1' => $row[6] ?? '',
+                'sous_cat_2' => $row[7] ?? '',
+                'sous_cat_3' => $row[8] ?? '',
+                'sous_cat_4' => $row[9] ?? '',
+                'fournisseur' => $row[10] ?? '',
+                'genre_femme' => $row[11] ?? '',
+                'genre_homme' => $row[12] ?? '',
+                'genre_mixte' => $row[13] ?? '',
+                'type' => $row[14] ?? '',
+                'fermeture' => $row[15] ?? '',
+                'coquille' => $row[16] ?? '',
+                'semelle' => $row[17] ?? '',
+                'coloris' => $row[18] ?? '',
+                'norme' => $row[19] ?? '',
+                'pointures' => $row[36] ?? '', // À adapter selon position réelle
+            ];
+        }
+
+        return $produits;
+    }
 }

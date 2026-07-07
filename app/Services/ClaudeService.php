@@ -6,34 +6,34 @@ use Illuminate\Support\Facades\Http;
 
 class ClaudeService
 {
-    public function analyserFiche(string $texte): ?array
-    {
-        $prompt = $this->buildPrompt($texte);
+  public function analyserFiche(string $texte): ?array
+  {
+    $prompt = $this->buildPrompt($texte);
 
-        $response = Http::withoutVerifying()
-            ->withHeaders([
-                'x-api-key' => config('services.anthropic.key'),
-                'anthropic-version' => '2023-06-01',
-                'Content-Type' => 'application/json',
-            ])
-            ->post('https://api.anthropic.com/v1/messages', [
-                'model' => 'claude-haiku-4-5',
-                'max_tokens' => 1500,
-                'messages' => [['role' => 'user', 'content' => $prompt]],
-            ]);
+    $response = Http::withoutVerifying()
+      ->withHeaders([
+        'x-api-key' => config('services.anthropic.key'),
+        'anthropic-version' => '2023-06-01',
+        'Content-Type' => 'application/json',
+      ])
+      ->post('https://api.anthropic.com/v1/messages', [
+        'model' => 'claude-haiku-4-5',
+        'max_tokens' => 1500,
+        'messages' => [['role' => 'user', 'content' => $prompt]],
+      ]);
 
-        $contenu = $response->json()['content'][0]['text'] ?? '';
-        $contenu = preg_replace('/```json\s*/i', '', $contenu);
-        $contenu = preg_replace('/```\s*/i', '', $contenu);
-        $contenu = trim($contenu);
+    $contenu = $response->json()['content'][0]['text'] ?? '';
+    $contenu = preg_replace('/```json\s*/i', '', $contenu);
+    $contenu = preg_replace('/```\s*/i', '', $contenu);
+    $contenu = trim($contenu);
 
-        return json_decode($contenu, true);
-    }
+    return json_decode($contenu, true);
+  }
 
-    private function buildPrompt(string $texte): string
-    {
-        // COLLE ICI TON PROMPT COMPLET DEPUIS TestPdf.php
-        return <<<PROMPT
+  private function buildPrompt(string $texte): string
+  {
+    // COLLE ICI TON PROMPT COMPLET DEPUIS TestPdf.php
+    return <<<PROMPT
 Tu es un expert EPI (Équipements de Protection Individuelle).
 Analyse cette fiche technique et retourne UNIQUEMENT un objet JSON valide, sans texte avant ou après.
 
@@ -43,7 +43,14 @@ RÈGLES STRICTES :
 - "nom_modele" = nom commercial court (ex: BREEZE, ALICE, X-CLAW PROOF)
 - "nom_woocommerce" : format exact "NOM_MODELE // NORME // FOURNISSEUR"
   ex: "BREEZE // S1PL SC SR HRO // S24"
-
+- "categorie" : détermine la catégorie exacte parmi ces valeurs UNIQUEMENT :
+  * "Chaussures de sécurité EN ISO 20345:2022" → si la fiche mentionne EN ISO 20345
+  * "Chaussures de travail (non sécurité) EN ISO 20347:2022" → si la fiche mentionne EN ISO 20347
+  * "Bottes, Cuissardes, Waders" → si le produit est une botte, cuissarde ou wader
+  * "Sur-chaussures, Système antiglisse" → si le produit est une sur-chaussure
+  * "Acessoires chaussures" → si c'est une semelle, lacet, chausson ou accessoire
+  * "Produits d'entretien et d'hygiène" → si c'est un spray, désinfectant ou produit d'entretien
+  * null → si aucune catégorie ne correspond avec certitude
 - "description" : texte commercial HTML de 80-100 mots mettant en 
   valeur les points forts du produit, les normes traduites en bénéfices
   clients, et les métiers recommandés. Utilise <p> et <strong>.
@@ -84,6 +91,7 @@ Retourne ce JSON :
   "sku": null,
   "nom_court": null,
   "nom_modele": null,
+  "categorie": null,
   "nom_woocommerce": "BREEZE // S1PL SC SR HRO // S24",
 "description": "<p>La <strong>BREEZE</strong> est...</p>"
   "fournisseur": null,
@@ -102,5 +110,5 @@ Retourne ce JSON :
 }
   
 PROMPT;
-    }
+  }
 }

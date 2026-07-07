@@ -72,6 +72,7 @@ class SheetMapper
             '',                                  // Col 34 : Métiers — décision Jobsecu
             $data['nom_woocommerce'] ?? '',  // Col 35 : Nom WooCommerce
             $data['description'] ?? '',      // Col 36 : Description HTML
+            implode(' | ', $data['alertes'] ?? []),  // Col 37 : Alertes
         ];
     }
 }

@@ -61,6 +61,7 @@ class RulesEngine
             'nom_modele' => $data['nom_modele'],
             'nom_court' => $data['nom_court'] ?? null,
             'nom_woocommerce' => $data['nom_woocommerce'] ?? null,
+            'categorie' => $data['categorie'] ?? null,
             'description' => $data['description'] ?? null,
             'fournisseur' => $this->normaliserFournisseur($data['fournisseur']),
             'pointures' => $this->formaterPointures($data['pointures_min'], $data['pointures_max']),

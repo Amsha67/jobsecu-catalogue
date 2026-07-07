@@ -127,6 +127,7 @@ class GoogleSheetsService
 
         // Mapping colonne index → lettre
         $colonnes = [
+            5 => 'F',  // Catégorie
             10 => 'K',  // Fournisseurs
             11 => 'L',  // Genre Femme
             12 => 'M',  // Genre Homme
@@ -147,10 +148,17 @@ class GoogleSheetsService
             27 => 'AB', // Loi AGEC
             34 => 'AI', // Nom WooCommerce
             35 => 'AJ', // Description
+            36 => 'AK', // Alertes
         ];
 
         foreach ($colonnes as $index => $lettre) {
             $valeur = $valeurs[$index] ?? '';
+
+            // Pour la colonne F — écrire uniquement si vide
+            if ($lettre === 'F') {
+                if (!$this->celluleEstVide($onglet, $numeroLigne, 'F'))
+                    continue;
+            }
 
             // Ne pas écraser si Claude n'a rien trouvé
             if ($valeur === '' || $valeur === null)
@@ -224,6 +232,35 @@ class GoogleSheetsService
                 ],
             ];
         }
+        // Alertes → fond orange si présentes
+        $alertesValeur = $valeurs[36] ?? '';
+        if (!empty($alertesValeur)) {
+            $colNum = $this->lettreVersIndex('AK');
+            $requests[] = [
+                'updateCells' => [
+                    'range' => [
+                        'sheetId' => $sheetId,
+                        'startRowIndex' => $numeroLigne - 1,
+                        'endRowIndex' => $numeroLigne,
+                        'startColumnIndex' => $colNum,
+                        'endColumnIndex' => $colNum + 1,
+                    ],
+                    'rows' => [
+                        [
+                            'values' => [
+                                [
+                                    'userEnteredValue' => ['stringValue' => $alertesValeur],
+                                    'userEnteredFormat' => [
+                                        'backgroundColor' => ['red' => 1.0, 'green' => 0.7, 'blue' => 0.0],
+                                    ],
+                                ]
+                            ],
+                        ]
+                    ],
+                    'fields' => 'userEnteredValue,userEnteredFormat.backgroundColor',
+                ],
+            ];
+        }
 
         if (empty($requests))
             return true;
@@ -260,5 +297,15 @@ class GoogleSheetsService
             }
         }
         return 0;
+    }
+    public function celluleEstVide(string $onglet, int $ligne, string $colonne): bool
+    {
+        $range = urlencode($onglet . '!' . $colonne . $ligne . ':' . $colonne . $ligne);
+        $url = "{$this->baseUrl}/{$this->spreadsheetId}/values/{$range}";
+        $response = Http::withoutVerifying()
+            ->withToken($this->accessToken)
+            ->get($url);
+        $valeurs = $response->json()['values'] ?? [];
+        return empty($valeurs);
     }
 }

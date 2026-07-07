@@ -8,6 +8,8 @@ class ClaudeService
 {
   public function analyserFiche(string $texte): ?array
   {
+    $texte = mb_convert_encoding($texte, 'UTF-8', 'UTF-8');
+    $texte = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $texte);
     $prompt = $this->buildPrompt($texte);
 
     $response = Http::withoutVerifying()

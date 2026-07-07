@@ -330,6 +330,14 @@ class GoogleSheetsService
             if (empty($row[0]))
                 continue;
 
+            // Ignorer les titres de section (pas de fournisseur ET pas de famille)
+            if (empty($row[4]) && empty($row[10]))
+                continue;
+
+            // Ignorer si le SKU contient "EN ISO" (titre de section)
+            if (str_contains(strtoupper($row[0] ?? ''), 'EN ISO'))
+                continue;
+
             $produits[] = [
                 'sku' => $row[0] ?? '',
 
@@ -350,7 +358,7 @@ class GoogleSheetsService
                 'norme' => $row[19] ?? '',
                 'nom_woocommerce' => $row[34] ?? '',
                 'description' => $row[35] ?? '',
-                'pointures' => $row[37] ?? '',
+                'pointures' => $row[37] ?? '', // AL = index 37
                 'poids' => $row[38] ?? '',
 
             ];

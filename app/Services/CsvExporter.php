@@ -31,24 +31,17 @@ class CsvExporter
     public function generer(array $produits): string
     {
         $lignes = [];
-
-        // En-tête CSV WooCommerce natif
         $lignes[] = $this->entete();
 
         foreach ($produits as $produit) {
-            // Ligne parent (variable)
+            // Une seule ligne par produit — pas de variations
             $lignes[] = $this->ligneParent($produit);
-
-            // Lignes enfants (variations par pointure)
-            if (!empty($produit['pointures']) && str_contains($produit['pointures'], '-')) {
-                [$min, $max] = explode('-', $produit['pointures']);
-                for ($pt = (int) $min; $pt <= (int) $max; $pt++) {
-                    $lignes[] = $this->ligneVariation($produit, $pt);
-                }
-            }
         }
 
-        return implode("\n", array_map(fn($l) => $this->formatLigne($l), $lignes));
+        return implode("\n", array_map(
+            fn($l) => $this->formatLigne($l),
+            $lignes
+        ));
     }
 
     private function entete(): array

@@ -73,6 +73,8 @@ class SheetMapper
             $data['nom_woocommerce'] ?? '',  // Col 35 : Nom WooCommerce
             $data['description'] ?? '',      // Col 36 : Description HTML
             implode(' | ', $data['alertes'] ?? []),  // Col 37 : Alertes
+            $data['pointures'] ?? '',  // Col AL : Pointures
+            $data['poids'] ?? '',            // AM (index 38)
         ];
     }
 }

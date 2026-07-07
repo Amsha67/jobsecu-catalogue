@@ -146,9 +146,12 @@ class GoogleSheetsService
             25 => 'Z',  // Option 6
             26 => 'AA', // Option 7
             27 => 'AB', // Loi AGEC
-            34 => 'AI', // Nom WooCommerce
-            35 => 'AJ', // Description
-            36 => 'AK', // Alertes
+            34 => 'AI', // Nom WooCommerce  (index 34)
+            35 => 'AJ', // Description      (index 35)
+            36 => 'AK', // Alertes          (index 36)
+            37 => 'AL', // Pointures        (index 37)
+            38 => 'AM', // Poids            (index 38)
+
         ];
 
         foreach ($colonnes as $index => $lettre) {
@@ -329,8 +332,7 @@ class GoogleSheetsService
 
             $produits[] = [
                 'sku' => $row[0] ?? '',
-                'nom_woocommerce' => $row[34] ?? '',
-                'description' => $row[35] ?? '',
+
                 'categorie' => $row[5] ?? '',
                 'sous_cat_1' => $row[6] ?? '',
                 'sous_cat_2' => $row[7] ?? '',
@@ -346,7 +348,11 @@ class GoogleSheetsService
                 'semelle' => $row[17] ?? '',
                 'coloris' => $row[18] ?? '',
                 'norme' => $row[19] ?? '',
-                'pointures' => $row[36] ?? '', // À adapter selon position réelle
+                'nom_woocommerce' => $row[34] ?? '',
+                'description' => $row[35] ?? '',
+                'pointures' => $row[37] ?? '',
+                'poids' => $row[38] ?? '',
+
             ];
         }
 

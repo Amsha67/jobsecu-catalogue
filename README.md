@@ -199,4 +199,4 @@ Le Sheet doit avoir ces colonnes dans cet ordre exact :
 
 ## Auteur
 
-Développé par **Amsha7** dans le cadre d'un projet freelance BTS SIO SLAM.
+Développé par **Eric Schmoelzlin** dans le cadre d'un projet de stage avec **LerNumérique** en BTS SIO SLAM. 

@@ -2,7 +2,7 @@
 
 ## Qu'est-ce que cette application ?
 
-Cette application vous permet d'importer automatiquement les fiches techniques PDF de vos produits EPI dans votre catalogue Google Sheets, puis de générer un fichier CSV prêt à importer dans WooCommerce.
+Cette application vous permet d'importer automatiquement des fiches techniques PDF de vos produits dans un catalogue Google Sheets, puis de générer un fichier CSV prêt à importer dans WooCommerce.
 
 **Sans l'application :** 15 minutes de saisie manuelle par produit
 **Avec l'application :** 2-3 minutes par produit (vérification uniquement)
@@ -25,6 +25,7 @@ Vous aurez besoin de :
 4. Copiez la clé (commence par `sk-ant-...`)
 5. Transmettez-la à votre prestataire pour configuration
 
+**Coût par fichier** --> 0.01€
 **Coût estimé :** ~0,20€ pour traiter 190 fiches produits
 
 ---
@@ -34,6 +35,7 @@ Vous aurez besoin de :
 ### Étape 1 — Choisir la famille de produits
 
 Dans le menu déroulant en haut, sélectionnez l'onglet correspondant à vos produits :
+
 - Produits Pieds
 - Produits Têtes
 - Produits Mains

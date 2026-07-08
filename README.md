@@ -9,7 +9,7 @@ Application Laravel + Vue 3 permettant d'extraire automatiquement les données t
 - **IA** : API Claude (Anthropic) — modèle claude-haiku-4-5
 - **Stockage catalogue** : Google Sheets API v4
 - **Extraction PDF** : smalot/pdfparser
-- **Auth Google** : google/auth + firebase/php-jwt
+
 
 ## Fonctionnalités
 
@@ -154,7 +154,7 @@ routes/web.php # Routes Laravel
 
 ## Structure du Google Sheet
 
-Le Sheet doit avoir ces colonnes dans cet ordre exact :
+Le Sheet doit avoir ces colonnes dans cet ordre exact (pour le besoin de jobsecu, **À ADAPTER SELON LE BESOIN** :
 
 | Col | Nom | Rempli par |
 |---|---|---|

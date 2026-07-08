@@ -121,7 +121,7 @@
                             <div>
                                 <span class="font-semibold">{{ r.nom }}</span>
                                 <span v-if="r.nom_woocommerce" class="text-sm text-gray-500 ml-2">→ {{ r.nom_woocommerce
-                                }}</span>
+                                    }}</span>
                             </div>
                             <span class="text-xs font-semibold px-3 py-1 rounded-full"
                                 :class="r.erreur ? 'bg-red-100 text-red-700' : r.statut === 'mis_a_jour' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'">
@@ -171,7 +171,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+
 import { ref, computed, onMounted } from 'vue'
 
 const creditsInfo = ref(null)
